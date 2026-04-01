@@ -1,4 +1,4 @@
-class Member {
+public class  Member {
     String name;
     int finesOwing;
     int booksBorrowedCount; // Track how many books this person has taken total
