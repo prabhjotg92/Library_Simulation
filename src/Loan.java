@@ -1,5 +1,11 @@
 public class Loan {
-    public static void main(String[] args) {
+    Book borrowedBook;
+    Member borrower;
+    int dayBorrowed;
 
+    Loan(Book b, Member m, int day) {
+        borrowedBook = b;
+        borrower = m;
+        dayBorrowed = day;
     }
 }
