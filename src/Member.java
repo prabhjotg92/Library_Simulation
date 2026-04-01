@@ -1,5 +1,9 @@
 public class Member {
-    public static void main(String[] args) {
+    String name;
+    int finesOwing;
 
+    Member(String memberName) {
+        name = memberName;
+        finesOwing = 0;
     }
 }
