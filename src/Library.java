@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 
-class Library {
+public class Library {
     int currentDay; // Keeps track of what day the simulation is on
     Book[] bookCollection;
     Member[] memberList;
