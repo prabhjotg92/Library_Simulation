@@ -1,11 +1,11 @@
-public class  Member {
+public class Member {
     String name;
-    int finesOwing;
-    int booksBorrowedCount; // Track how many books this person has taken total
+    int totalFines;
+     int totalBooksBorrowed; // Track how many books this person has taken total
 
     Member(String memberName) {
         name = memberName;
-        finesOwing = 0;
-        booksBorrowedCount = 0;
+        totalFines = 0;
+        totalBooksBorrowed = 0;
     }
 }
