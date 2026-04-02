@@ -1,7 +1,7 @@
 import java.util.ArrayList;
-
+// The Library class holds all the lists and the current date
 public class Library {
-    int currentDay; // Keeps track of what day the simulation is on
+    Date today;
     Book[] bookCollection;
     Member[] memberList;
     
@@ -9,7 +9,7 @@ public class Library {
     ArrayList<Loan> activeLoans;
 
     Library() {
-        currentDay = 0;
+        today = new Date(0);
         activeLoans = new ArrayList<Loan>();
 
         // list of 10 books
