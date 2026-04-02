@@ -1,65 +1,83 @@
 public class Main {
     public static void main(String[] args) {
-        Library myLibrary = new Library();
+        Library lib = new Library();
+
+        Input.waitForUserToPressEnter("Press Enter to start Day 1");
 
         while (true) {
-            myLibrary.currentDay = myLibrary.currentDay + 1;
-            System.out.println("\n--- Day " + myLibrary.currentDay + " ---");
+            lib.today.dayNumber++;
 
-            // Pick a random event
-            int eventChoice = Rand.randomInt(0, 4);
+            // Daily summary counters
+            int booksBorrowedToday = 0;
+            int booksReturnedToday = 0;
+            int finesCollectedToday = 0;
 
-            switch (eventChoice) {
-                case 0:
-                    System.out.println("It was a slow day at the library.");
-                    break;
+            System.out.println("DAY " + lib.today.dayNumber);
+            System.out.println("------------------------------------");
 
-                case 1:
-                    // Logic for borrowing a book
-                    int memberPos = Rand.randomInt(0, myLibrary.memberList.length);
-                    int bookPos = Rand.randomInt(0, myLibrary.bookCollection.length);
-                    
-                    Member person = myLibrary.memberList[memberPos];
-                    Book book = myLibrary.bookCollection[bookPos];
+            // Run 10 potential actions per day
+            for (int i = 0; i < 10; i++) {
+                int actionType = Rand.randomInt(0, 3);
 
-                    if (book.isAvailable) {
-                        book.isAvailable = false;
-                        person.booksBorrowedCount++;
-                        myLibrary.activeLoans.add(new Loan(book, person, myLibrary.currentDay));
-                        System.out.println(person.name + " checked out " + book.title);
-                    } else {
-                        System.out.println(person.name + " wanted " + book.title + " but it's out.");
+                if (actionType == 0) {
+                    // Action barrow
+                    Member m = lib.memberList[Rand.randomInt(0, 10)];
+                    Book b = lib.bookCollection[Rand.randomInt(0, 10)];
+                    if (b.isAvailable) {
+                        b.isAvailable = false;
+                        m.totalBooksBorrowed++;
+                        lib.activeLoans.add(new Loan(b, m, lib.today.dayNumber));
+                        booksBorrowedToday++;
+                        System.out.println("EVENT: " + m.name + " checked out " + b.title);
                     }
-                    break;
+                }
+                else if (actionType == 1) {
+                    // Action return (Check if anyone is ready to return their book)
+                    if (lib.activeLoans.size() > 0) {
+                        int randomIndex = Rand.randomInt(0, lib.activeLoans.size());
+                        Loan l = lib.activeLoans.get(randomIndex);
 
-                case 2:
-                    // Logic for a random fine
-                    int fineIndex = Rand.randomInt(0, myLibrary.memberList.length);
-                    Member penalized = myLibrary.memberList[fineIndex];
-                    penalized.finesOwing += 2;
-                    System.out.println(penalized.name + " was late returning a book. $2 fine.");
-                    break;
+                        // Only return if today is the day they decided to bring it back
+                        if (lib.today.dayNumber >= l.randomReturnDay) {
+                            lib.activeLoans.remove(randomIndex);
+                            l.borrowedBook.isAvailable = true;
+                            booksReturnedToday++;
 
-                case 3:
-                    System.out.println("A librarian organized the shelves.");
-                    break;
+                            // Calculate fine, $1 per day if kept over 7 days
+                            int daysKept = lib.today.dayNumber - l.dayBorrowed;
+                            if (daysKept > 7) {
+                                int penalty = (daysKept - 7) * 1;
+                                l.borrower.totalFines += penalty;
+                                System.out.println("EVENT: " + l.borrower.name + " returned " + l.borrowedBook.title + " LATE. Fine added: $" + penalty);
+                            } else {
+                                System.out.println("EVENT: " + l.borrower.name + " returned " + l.borrowedBook.title + " on time.");
+                            }
+                        }
+                    }
+                }
+                else {
+                    // Action fine
+                    Member m = lib.memberList[Rand.randomInt(0, 10)];
+                    if (m.totalFines > 0) {
+                        finesCollectedToday += m.totalFines;
+                        System.out.println("EVENT: " + m.name + " paid a fine of $" + m.totalFines);
+                        m.totalFines = 0;
+                    }
+                }
             }
 
-            // Display status of all books
-            System.out.println("\n--- Library Inventory ---");
-            for (int i = 0; i < myLibrary.bookCollection.length; i++) {
-                String shelfStatus = myLibrary.bookCollection[i].isAvailable ? "[In]" : "[Out]";
-                System.out.println(shelfStatus + " " + myLibrary.bookCollection[i].title);
+            // Daily summary
+            System.out.println("\nDaily Report Summary:");
+            System.out.println("Books Taken Out: " + booksBorrowedToday);
+            System.out.println("Books Returned:  " + booksReturnedToday);
+            System.out.println("Fines Collected: $" + finesCollectedToday);
+
+            System.out.println("\nMember Ledger:");
+            for (Member m : lib.memberList) {
+                System.out.println(m.name + " | Unpaid Fines: $" + m.totalFines + " | Total Borrowed: " + m.totalBooksBorrowed);
             }
 
-            // Display member stats
-            System.out.println("\n--- Member Records ---");
-            for (int i = 0; i < myLibrary.memberList.length; i++) {
-                Member m = myLibrary.memberList[i];
-                System.out.println(m.name + " | Total Borrowed: " + m.booksBorrowedCount + " | Fines: $" + m.finesOwing);
-            }
-
-            Input.waitForUserToPressEnter("\nPress Enter for Day " + (myLibrary.currentDay + 1));
+            Input.waitForUserToPressEnter("\nEnd of Day " + lib.today.dayNumber + ". Press Enter for next day");
         }
     }
 }
