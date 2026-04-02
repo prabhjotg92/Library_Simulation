@@ -2,12 +2,13 @@ public class Loan {
     Book borrowedBook;
     Member borrower;
     int dayBorrowed;
-    int dueDate; // New field to show when it should be back
+    int randomReturnDay; // The day this specific person decides to return it
 
-    Loan(Book theBook, Member theMember, int day) {
-        borrowedBook = theBook;
-        borrower = theMember;
+    Loan(Book b, Member m, int day) {
+        borrowedBook = b;
+        borrower = m;
         dayBorrowed = day;
-        dueDate = day + 7; // Books are due in 7 days
+        // Members might keep a book anywhere from 1 to 10 days
+        randomReturnDay = day + Rand.randomInt(1, 11);
     }
 }
