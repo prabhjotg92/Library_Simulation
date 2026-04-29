@@ -1,5 +1,4 @@
 public class Main {
-    // Keep track of daily stats as static variables for easy access in this class
     private static int booksBorrowedToday = 0;
     private static int booksReturnedToday = 0;
     private static int finesCollectedToday = 0;
@@ -87,7 +86,7 @@ public class Main {
         }
     }
 
-    // Method to print the end-of-day report
+    // Method to print the end of day report
     private static void printDailySummary(Library lib) {
         System.out.println("\nDaily Report Summary:");
         System.out.println("Books Taken Out: " + booksBorrowedToday);
