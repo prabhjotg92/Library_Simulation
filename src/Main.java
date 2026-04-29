@@ -1,4 +1,9 @@
 public class Main {
+    // Keep track of daily stats as static variables for easy access in this class
+    private static int booksBorrowedToday = 0;
+    private static int booksReturnedToday = 0;
+    private static int finesCollectedToday = 0;
+
     public static void main(String[] args) {
         Library lib = new Library();
 
@@ -6,11 +11,11 @@ public class Main {
 
         while (true) {
             lib.today.dayNumber++;
-
-            // Daily summary counters
-            int booksBorrowedToday = 0;
-            int booksReturnedToday = 0;
-            int finesCollectedToday = 0;
+            
+            // Reset daily counters
+            booksBorrowedToday = 0;
+            booksReturnedToday = 0;
+            finesCollectedToday = 0;
 
             System.out.println("DAY " + lib.today.dayNumber);
             System.out.println("------------------------------------");
@@ -20,64 +25,78 @@ public class Main {
                 int actionType = Rand.randomInt(0, 3);
 
                 if (actionType == 0) {
-                    // Action barrow
-                    Member m = lib.memberList[Rand.randomInt(0, 10)];
-                    Book b = lib.bookCollection[Rand.randomInt(0, 10)];
-                    if (b.isAvailable) {
-                        b.isAvailable = false;
-                        m.totalBooksBorrowed++;
-                        lib.activeLoans.add(new Loan(b, m, lib.today.dayNumber));
-                        booksBorrowedToday++;
-                        System.out.println("EVENT: " + m.name + " checked out " + b.title);
-                    }
+                    processBorrow(lib);
                 }
                 else if (actionType == 1) {
-                    // Action return (Check if anyone is ready to return their book)
-                    if (lib.activeLoans.size() > 0) {
-                        int randomIndex = Rand.randomInt(0, lib.activeLoans.size());
-                        Loan l = lib.activeLoans.get(randomIndex);
-
-                        // Only return if today is the day they decided to bring it back
-                        if (lib.today.dayNumber >= l.randomReturnDay) {
-                            lib.activeLoans.remove(randomIndex);
-                            l.borrowedBook.isAvailable = true;
-                            booksReturnedToday++;
-
-                            // Calculate fine, $1 per day if kept over 7 days
-                            int daysKept = lib.today.dayNumber - l.dayBorrowed;
-                            if (daysKept > 7) {
-                                int penalty = (daysKept - 7) * 1;
-                                l.borrower.totalFines += penalty;
-                                System.out.println("EVENT: " + l.borrower.name + " returned " + l.borrowedBook.title + " LATE. Fine added: $" + penalty);
-                            } else {
-                                System.out.println("EVENT: " + l.borrower.name + " returned " + l.borrowedBook.title + " on time.");
-                            }
-                        }
-                    }
+                    processReturn(lib);
                 }
                 else {
-                    // Action fine
-                    Member m = lib.memberList[Rand.randomInt(0, 10)];
-                    if (m.totalFines > 0) {
-                        finesCollectedToday += m.totalFines;
-                        System.out.println("EVENT: " + m.name + " paid a fine of $" + m.totalFines);
-                        m.totalFines = 0;
-                    }
+                    processFine(lib);
                 }
             }
 
-            // Daily summary
-            System.out.println("\nDaily Report Summary:");
-            System.out.println("Books Taken Out: " + booksBorrowedToday);
-            System.out.println("Books Returned:  " + booksReturnedToday);
-            System.out.println("Fines Collected: $" + finesCollectedToday);
-
-            System.out.println("\nMember Ledger:");
-            for (Member m : lib.memberList) {
-                System.out.println(m.name + " | Unpaid Fines: $" + m.totalFines + " | Total Borrowed: " + m.totalBooksBorrowed);
-            }
-
+            printDailySummary(lib);
             Input.waitForUserToPressEnter("\nEnd of Day " + lib.today.dayNumber + ". Press Enter for next day");
+        }
+    }
+
+    // Method to handle borrowing logic
+    private static void processBorrow(Library lib) {
+        Member m = lib.memberList[Rand.randomInt(0, 10)];
+        Book b = lib.bookCollection[Rand.randomInt(0, 10)];
+        
+        if (b.isAvailable()) {
+            b.setAvailable(false);
+            m.incrementBooksBorrowed();
+            lib.activeLoans.add(new Loan(b, m, lib.today.dayNumber));
+            booksBorrowedToday++;
+            System.out.println("EVENT: " + m.getName() + " checked out " + b.getTitle());
+        }
+    }
+
+    // Method to handle returning logic
+    private static void processReturn(Library lib) {
+        if (lib.activeLoans.size() > 0) {
+            int randomIndex = Rand.randomInt(0, lib.activeLoans.size());
+            Loan l = lib.activeLoans.get(randomIndex);
+
+            if (lib.today.dayNumber >= l.getRandomReturnDay()) {
+                lib.activeLoans.remove(randomIndex);
+                l.getBorrowedBook().setAvailable(true);
+                booksReturnedToday++;
+
+                int daysKept = lib.today.dayNumber - l.getDayBorrowed();
+                if (daysKept > 7) {
+                    int penalty = (daysKept - 7) * 1;
+                    l.getBorrower().addFine(penalty);
+                    System.out.println("EVENT: " + l.getBorrower().getName() + " returned " + l.getBorrowedBook().getTitle() + " LATE. Fine added: $" + penalty);
+                } else {
+                    System.out.println("EVENT: " + l.getBorrower().getName() + " returned " + l.getBorrowedBook().getTitle() + " on time.");
+                }
+            }
+        }
+    }
+
+    // Method to handle paying fines
+    private static void processFine(Library lib) {
+        Member m = lib.memberList[Rand.randomInt(0, 10)];
+        if (m.getTotalFines() > 0) {
+            finesCollectedToday += m.getTotalFines();
+            System.out.println("EVENT: " + m.getName() + " paid a fine of $" + m.getTotalFines());
+            m.payFines();
+        }
+    }
+
+    // Method to print the end-of-day report
+    private static void printDailySummary(Library lib) {
+        System.out.println("\nDaily Report Summary:");
+        System.out.println("Books Taken Out: " + booksBorrowedToday);
+        System.out.println("Books Returned:  " + booksReturnedToday);
+        System.out.println("Fines Collected: $" + finesCollectedToday);
+
+        System.out.println("\nMember Ledger:");
+        for (Member m : lib.memberList) {
+            System.out.println(m.getName() + " | Unpaid Fines: $" + m.getTotalFines() + " | Total Borrowed: " + m.getTotalBooksBorrowed());
         }
     }
 }
